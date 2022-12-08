@@ -5,7 +5,15 @@ defmodule Basic.Receive do
           ({:cont, any} | {:halt, any} | {:suspend, any}, any ->
              {:halted, any} | {:suspended, any, (any -> any)})
           | {:error, any}
-  def stream(queue_name) do
+  def stream(queue_name),
+    do:
+      Stream.resource(
+        fn -> open_connection(queue_name) end,
+        &stream_next/1,
+        &close_connection/1
+      )
+
+  defp open_connection(queue_name) do
     with {:ok, connection} <- AMQP.Connection.open(),
          {:ok, channel} <- AMQP.Channel.open(connection),
          {:ok, _queue} <- AMQP.Queue.declare(channel, queue_name),
@@ -16,33 +24,28 @@ defmodule Basic.Receive do
              self(),
              no_ack: true
            ),
-         do:
-           Stream.repeatedly(fn ->
-             receive do
-               {:basic_deliver, payload, meta} -> %Message{payload: payload, meta: meta}
-             end
-           end)
+         do: {:ok, connection}
   end
 
-  def consume_with(queue_name, fun) do
-    with {:ok, connection} <- AMQP.Connection.open(),
-         {:ok, channel} <- AMQP.Channel.open(connection),
-         {:ok, _queue} <- AMQP.Queue.declare(channel, queue_name),
-         {:ok, _} <-
-           AMQP.Basic.consume(
-             channel,
-             queue_name,
-             self(),
-             no_ack: true
-           ),
-         do: receive_loop(fun)
+  defp close_connection({:ok, connection}), do: AMQP.Connection.close(connection)
+  defp close_connection(error), do: {:error, error}
+
+  defp stream_next({:ok, connection}) do
+    case(receive_message()) do
+      {:ok, message} -> {[message], {:ok, connection}}
+      {:error, error} -> {:halt, error}
+    end
   end
 
-  defp receive_loop(fun) do
+  defp stream_next(error), do: {:halt, error}
+
+  defp receive_message do
     receive do
-      {:basic_deliver, payload, _meta} ->
-        fun.(payload)
-        receive_loop(fun)
+      {:basic_deliver, payload, meta} ->
+        {:ok, %Message{payload: payload, meta: meta}}
+
+      {:basic_cancel, _, _} ->
+        {:error, :connection_closed}
     end
   end
 end
