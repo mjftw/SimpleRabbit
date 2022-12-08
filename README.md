@@ -1,21 +1,7 @@
-# Rabbitmq
+# RabbitMQ Sandbox
 
-**TODO: Add description**
+To start a local RabbitMQ server with docker:
 
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `rabbitmq` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:rabbitmq, "~> 0.1.0"}
-  ]
-end
+```sh
+docker run -p 5672:5672 -p 15672:15672 rabbitmq:3.10.5-management
 ```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/rabbitmq>.
-
