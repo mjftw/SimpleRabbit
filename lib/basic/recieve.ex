@@ -24,16 +24,20 @@ defmodule Basic.Receive do
              self(),
              consume_ops
            ),
-         do: {:ok, connection}
+         do: {:ok, {connection, channel}}
   end
 
-  defp close_connection({:ok, connection}), do: AMQP.Connection.close(connection)
+  defp close_connection({:ok, {connection, _channel}}), do: AMQP.Connection.close(connection)
   defp close_connection(error), do: {:error, error}
 
-  defp stream_next({:ok, connection}) do
+  defp stream_next({:ok, {connection, channel}}) do
     case(receive_message()) do
-      {:ok, message} -> {[message], {:ok, connection}}
-      {:error, error} -> {:halt, error}
+      {:ok, %Message{meta: %{delivery_tag: delivery_tag}} = message} ->
+        AMQP.Basic.ack(channel, delivery_tag)
+        {[message], {:ok, {connection, channel}}}
+
+      {:error, error} ->
+        {:halt, error}
     end
   end
 
