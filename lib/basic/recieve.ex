@@ -5,16 +5,16 @@ defmodule Basic.Receive do
           ({:cont, any} | {:halt, any} | {:suspend, any}, any ->
              {:halted, any} | {:suspended, any, (any -> any)})
           | {:error, any}
-  def stream(queue_name),
+  def stream(queue_name, connection_ops \\ [], consume_ops \\ []),
     do:
       Stream.resource(
-        fn -> open_connection(queue_name) end,
+        fn -> open_connection(queue_name, connection_ops, consume_ops) end,
         &stream_next/1,
         &close_connection/1
       )
 
-  defp open_connection(queue_name) do
-    with {:ok, connection} <- AMQP.Connection.open(),
+  defp open_connection(queue_name, connection_ops, consume_ops) do
+    with {:ok, connection} <- AMQP.Connection.open(connection_ops),
          {:ok, channel} <- AMQP.Channel.open(connection),
          {:ok, _queue} <- AMQP.Queue.declare(channel, queue_name),
          {:ok, _} <-
@@ -22,7 +22,7 @@ defmodule Basic.Receive do
              channel,
              queue_name,
              self(),
-             no_ack: true
+             consume_ops
            ),
          do: {:ok, connection}
   end
