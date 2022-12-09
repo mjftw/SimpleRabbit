@@ -1,19 +1,15 @@
 defmodule Basic.Receive do
   alias Basic.Message
 
-  @spec stream(any) ::
-          ({:cont, any} | {:halt, any} | {:suspend, any}, any ->
-             {:halted, any} | {:suspended, any, (any -> any)})
-          | {:error, any}
-  def stream(queue_name, connection_ops \\ [], consume_ops \\ []),
+  def stream(queue_name, consumer_tag, connection_ops \\ []),
     do:
       Stream.resource(
-        fn -> open_connection(queue_name, connection_ops, consume_ops) end,
+        fn -> open_connection(queue_name, consumer_tag, connection_ops) end,
         &stream_next/1,
         &close_connection/1
       )
 
-  defp open_connection(queue_name, connection_ops, consume_ops) do
+  defp open_connection(queue_name, consumer_tag, connection_ops) do
     with {:ok, connection} <- AMQP.Connection.open(connection_ops),
          {:ok, channel} <- AMQP.Channel.open(connection),
          {:ok, _queue} <- AMQP.Queue.declare(channel, queue_name),
@@ -22,7 +18,7 @@ defmodule Basic.Receive do
              channel,
              queue_name,
              self(),
-             consume_ops
+             consumer_tag: consumer_tag
            ),
          do: {:ok, {connection, channel}}
   end
