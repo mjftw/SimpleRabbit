@@ -28,8 +28,8 @@ defmodule Basic.Receive do
 
   defp stream_next({:ok, {connection, channel}}) do
     case(receive_message()) do
-      {:ok, %Message{meta: %{delivery_tag: delivery_tag}} = message} ->
-        AMQP.Basic.ack(channel, delivery_tag)
+      {:ok, message} ->
+        ack_message(message, channel)
         {[message], {:ok, {connection, channel}}}
 
       {:error, error} ->
@@ -48,4 +48,7 @@ defmodule Basic.Receive do
         {:error, :connection_closed}
     end
   end
+
+  defp ack_message(%Message{meta: %{delivery_tag: delivery_tag}}, channel),
+    do: AMQP.Basic.ack(channel, delivery_tag)
 end
