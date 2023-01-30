@@ -1,12 +1,25 @@
 defmodule Basic.Receive do
   alias Basic.Message
 
+  def one(queue_name, consumer_tag, connection_ops \\ []) do
+    with {:ok, {connection, channel}} <-
+           open_connection(queue_name, consumer_tag, connection_ops),
+         {:ok, message} <- receive_message() do
+      ack_message(message, channel)
+      close_connection(connection)
+      message
+    end
+  end
+
   def stream(queue_name, consumer_tag, connection_ops \\ []),
     do:
       Stream.resource(
         fn -> open_connection(queue_name, consumer_tag, connection_ops) end,
         &stream_next/1,
-        &close_connection/1
+        fn
+          {:ok, {connection, _channel}} -> close_connection(connection)
+          error -> {:error, error}
+        end
       )
 
   defp open_connection(queue_name, consumer_tag, connection_ops) do
@@ -23,8 +36,7 @@ defmodule Basic.Receive do
          do: {:ok, {connection, channel}}
   end
 
-  defp close_connection({:ok, {connection, _channel}}), do: AMQP.Connection.close(connection)
-  defp close_connection(error), do: {:error, error}
+  defp close_connection(connection), do: AMQP.Connection.close(connection)
 
   defp stream_next({:ok, {connection, channel}}) do
     case(receive_message()) do
