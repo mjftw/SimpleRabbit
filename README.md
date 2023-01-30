@@ -70,7 +70,10 @@ iex(1)> SimpleRabbit.Receive.one("my_fun_channel", "consumer1")
 And work with a stream in shell 3:
 
 ```elixir
-iex(1)> SimpleRabbit.Receive.stream("my_fun_channel", "consumer2") |> Stream.map(&IO.inspect/1) |> Stream.take(2) |> Stream.run()
+iex(1)> SimpleRabbit.Receive.stream("my_fun_channel", "consumer2") |>
+...(1)>   Stream.map(&IO.inspect/1) |>
+...(1)>   Stream.take(2) |>
+...(1)>   Stream.run()
 %SimpleRabbit.Message{
   payload: "Hello consumers!",
   meta: %{
