@@ -1,6 +1,6 @@
-defmodule Rabbitmq do
+defmodule SimpleRabbit do
   @moduledoc """
-  Documentation for `Rabbitmq`.
+  Documentation for `SimpleRabbit`.
   """
 
   @doc """
@@ -8,7 +8,7 @@ defmodule Rabbitmq do
 
   ## Examples
 
-      iex> Rabbitmq.hello()
+      iex> SimpleRabbit.hello()
       :world
 
   """

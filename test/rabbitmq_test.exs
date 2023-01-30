@@ -1,8 +1,8 @@
-defmodule RabbitmqTest do
+defmodule SimpleRabbitTest do
   use ExUnit.Case
-  doctest Rabbitmq
+  doctest SimpleRabbit
 
   test "greets the world" do
-    assert Rabbitmq.hello() == :world
+    assert SimpleRabbit.hello() == :world
   end
 end
