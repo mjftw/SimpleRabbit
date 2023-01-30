@@ -15,7 +15,10 @@ defmodule SimpleRabbit.Receive do
     do:
       Stream.resource(
         fn -> open_connection(queue_name, consumer_tag, connection_ops) end,
-        &stream_next/1,
+        fn
+          {:ok, {connection, channel}} -> stream_next(connection, channel)
+          error -> {:halt, error}
+        end,
         fn
           {:ok, {connection, _channel}} -> close_connection(connection)
           error -> {:error, error}
@@ -38,7 +41,7 @@ defmodule SimpleRabbit.Receive do
 
   defp close_connection(connection), do: AMQP.Connection.close(connection)
 
-  defp stream_next({:ok, {connection, channel}}) do
+  defp stream_next(connection, channel) do
     case(receive_message()) do
       {:ok, message} ->
         ack_message(message, channel)
@@ -48,8 +51,6 @@ defmodule SimpleRabbit.Receive do
         {:halt, error}
     end
   end
-
-  defp stream_next(error), do: {:halt, error}
 
   defp receive_message do
     receive do
