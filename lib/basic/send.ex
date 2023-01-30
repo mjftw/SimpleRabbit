@@ -1,4 +1,4 @@
-defmodule Basic.Send do
+defmodule SimpleRabbit.Send do
   def send(message, queue_name, exchange_name \\ "", publish_ops \\ []) do
     with {:ok, connection} <- AMQP.Connection.open(),
          {:ok, channel} <- AMQP.Channel.open(connection),

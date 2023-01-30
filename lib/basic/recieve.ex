@@ -1,5 +1,5 @@
-defmodule Basic.Receive do
-  alias Basic.Message
+defmodule SimpleRabbit.Receive do
+  alias SimpleRabbit.Message
 
   def one(queue_name, consumer_tag, connection_ops \\ []) do
     with {:ok, {connection, channel}} <-

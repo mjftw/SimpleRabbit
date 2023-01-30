@@ -1,3 +1,3 @@
-defmodule Basic.Message do
+defmodule SimpleRabbit.Message do
   defstruct [:payload, :meta]
 end
