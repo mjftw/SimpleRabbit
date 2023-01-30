@@ -75,7 +75,7 @@ iex(1)> SimpleRabbit.Receive.stream("my_fun_channel", "consumer2") |>
 ...(1)>   Stream.take(2) |>
 ...(1)>   Stream.run()
 %SimpleRabbit.Message{
-  payload: "Hello consumers!",
+  payload: "Hello again",
   meta: %{
     app_id: :undefined,
     cluster_id: :undefined,
